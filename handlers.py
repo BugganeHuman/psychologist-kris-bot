@@ -12,7 +12,10 @@ import os
 from aiogram.types import Message, CallbackQuery
 import asyncio
 from aiogram.types import FSInputFile
+from pyexpat.errors import messages
+
 from keyboards import get_request_type_panel, get_result_panel
+from claude_api import get_claude_analysis
 
 router = Router()
 
@@ -80,21 +83,21 @@ async def start_test(callback : CallbackQuery, state : FSMContext):
 @router.message(QuestionState.waiting_for_first_base_question)
 async def run_first_base_question (message : Message, state : FSMContext):
     client_answer = message.text
-    await state.update_data(first_base_question=client_answer)
+    await state.update_data(first_base_answer=client_answer)
     await message.answer('Если ничего не менять в ближайшие 3-6-12 месяцев, ваш вопрос/проблема решится сама?')
     await state.set_state(QuestionState.waiting_for_second_base_question)
 
 @router.message(QuestionState.waiting_for_second_base_question)
 async def run_second_base_question (message : Message, state : FSMContext):
     client_answer = message.text
-    await state.update_data(second_base_question=client_answer)
+    await state.update_data(second_base_answer=client_answer)
     await message.answer('Какой результат/ состояние/ решение вы хотите получить?')
     await state.set_state(QuestionState.waiting_for_third_base_question)
 
 @router.message(QuestionState.waiting_for_third_base_question)
 async def run_third_base_question (message : Message, state : FSMContext):
     client_answer = message.text
-    await state.update_data(third_base_question=client_answer)
+    await state.update_data(third_base_answer=client_answer)
 
     data = await state.get_data()
     request_type = data.get('request_type')
@@ -144,7 +147,7 @@ async def run_third_base_question (message : Message, state : FSMContext):
 @router.message(QuestionState.waiting_for_first_health_question)
 async def run_first_health_question(message : Message, state : FSMContext):
     client_answer = message.text
-    await state.update_data(first_health_question=client_answer)
+    await state.update_data(first_health_answer=client_answer)
     await message.answer("""
         Как вы уже пробовали это решать?
     """)
@@ -153,7 +156,7 @@ async def run_first_health_question(message : Message, state : FSMContext):
 @router.message(QuestionState.waiting_for_first_relationship_question)
 async def run_first_relationship_question(message : Message, state : FSMContext):
     client_answer = message.text
-    await state.update_data(first_relationship_question=client_answer)
+    await state.update_data(first_relationship_answer=client_answer)
     await message.answer("""
         Как вы уже пробовали это решать?
     """)
@@ -162,7 +165,7 @@ async def run_first_relationship_question(message : Message, state : FSMContext)
 @router.message(QuestionState.waiting_for_first_finance_question)
 async def run_first_finance_question(message : Message, state : FSMContext):
     client_answer = message.text
-    await state.update_data(first_finance_question=client_answer)
+    await state.update_data(first_finance_answer=client_answer)
     await message.answer("""
         Как вы обычно реагируете, когда нужно сделать шаг, который может увеличить ваш доход?
         
@@ -179,7 +182,7 @@ async def run_first_finance_question(message : Message, state : FSMContext):
 @router.message(QuestionState.waiting_for_second_health_question)
 async def run_second_health_question(message : Message, state : FSMContext):
     client_answer = message.text
-    await state.update_data(second_health_question=client_answer)
+    await state.update_data(second_health_answer=client_answer)
 
     await asyncio.sleep(1)
     await message.answer('Спасибо за уделенное время 🙏, нажмите на кнопку что бы получить результат',
@@ -188,7 +191,7 @@ async def run_second_health_question(message : Message, state : FSMContext):
 @router.message(QuestionState.waiting_for_second_relationship_question)
 async def run_second_relationship_question(message : Message, state : FSMContext):
     client_answer = message.text
-    await state.update_data(second_relationship_question=client_answer)
+    await state.update_data(second_relationship_answer=client_answer)
 
     await asyncio.sleep(1)
     await message.answer('Спасибо за уделенное время 🙏, нажмите на кнопку что бы получить результат',
@@ -197,7 +200,7 @@ async def run_second_relationship_question(message : Message, state : FSMContext
 @router.message(QuestionState.waiting_for_second_finance_question)
 async def run_second_finance_question(message : Message, state : FSMContext):
     client_answer = message.text
-    await state.update_data(second_finance_question=client_answer)
+    await state.update_data(second_finance_answer=client_answer)
 
     await asyncio.sleep(1)
     await message.answer('Спасибо за уделенное время 🙏, нажмите на кнопку что бы получить результат',
@@ -208,6 +211,21 @@ async def get_result(callback : CallbackQuery, state : FSMContext):
     await callback.answer()
     data = await state.get_data()
     request_type = data.get('request_type')
+
+    answers = {
+        'first_base_answer' : data.get('first_base_answer', ''),
+        'second_base_answer' : data.get('second_base_answer', ''),
+        'third_base_answer': data.get('third_base_answer', ''),
+        'first_health_answer': data.get('first_health_answer', ''),
+        'second_health_answer': data.get('second_health_answer', ''),
+        'first_relationship_answer' : data.get('first_relationship_answer', ''),
+        'second_relationship_answer': data.get('second_relationship_answer', ''),
+        'first_finance_answer': data.get('first_finance_answer', ''),
+        'second_finance_answer': data.get('second_finance_answer'),
+    }
+
+    result = get_claude_analysis(request_type, answers)
+    await callback.message.answer(result, parse_mode="HTML")
 
 
 
