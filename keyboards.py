@@ -16,7 +16,15 @@ def get_request_type_panel():
     )
     builder.row(
         InlineKeyboardButton(
-            text="💰 Бизнесс / Финансы", callback_data="request_data_finance"
+            text="💰 Бизнесс / Финансы", callback_data="request_type_finance"
         )
+    )
+    return builder.as_markup()
+
+def get_result_panel():
+    builder = InlineKeyboardBuilder()
+
+    builder.row(
+        InlineKeyboardButton(text='Получить результат ✅', callback_data=f'get_result')
     )
     return builder.as_markup()
