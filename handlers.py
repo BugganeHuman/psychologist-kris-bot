@@ -21,7 +21,8 @@ from claude_api import get_claude_analysis
 
 router = Router()
 
-photo = FSInputFile("kris_photo.jpg")
+start_video = FSInputFile("video.mp4")
+final_video = FSInputFile("video 2.mp4")
 
 class QuestionState (StatesGroup):
     waiting_for_first_base_question = State()
@@ -38,24 +39,17 @@ class QuestionState (StatesGroup):
 @router.message(Command("start"))
 async def start(message: Message, state : FSMContext):
 
-    await message.answer_photo(
-        photo=photo,
-        caption="""
-    Привет, давай познакомимся? 
+    await message.answer_video_note(
+        video_note=start_video)
+    await message.answer( """
+<b>Кристина Шабанова | психолог</b>\n
+➡️ <a href='https://www.instagram.com/psyholog.shabanova'>Instagram</a>
+➡️ <a href='https://t.me/izmeni_gzizn'>Telegram</a>
+➡️ <a href='https://www.instagram.com/retreat_kris'>Ретриты</a>
 
-Я Кристина Шабанова, психолог, специалист нейрографики и 
-трансформационных игр, системный расстановщик, 
-организатор трансформационных ретритов и ты 
-почувствуешь результат после 1 сессии.
-
-Приглашаю в свои социальные сети
-
-Инстаграм  https://www.instagram.com/psyholog.shabanova
-
-Телеграм канал https://t.me/izmeni_gzizn
-
-Ретриты https://www.instagram.com/retreat_kris
-    """
+Помогаю увидеть причины повторяющихся сценариев в отношениях, деньгах, реализации и внутреннем состоянии...\n
+В работе мне важно не просто поговорить о проблеме...
+    """, disable_web_page_preview=True, parse_mode='HTML'
     )
     await state.clear()
     await asyncio.sleep(3)
@@ -70,11 +64,8 @@ async def start_test(callback : CallbackQuery, state : FSMContext):
     await state.update_data(request_type=rt)
     await callback.message.answer("""
     Что сейчас больше всего забирает вашу энергию и внимание?
-• Отношения / личная жизнь
-• Здоровье / состояние
-• Деньги / бизнес / реализация
-• Самооценка / внутреннее состояние
-• Не могу понять, но чувствую, что что-то не так
+    
+• Выбери из вариантов ответов
 • Или напиши свой вариант
     """, reply_markup=get_first_base_question_panel())
 
@@ -109,13 +100,8 @@ async def run_third_base_question (message : Message, state : FSMContext):
         await message.answer("""
         Как ваше внутреннее состояние сейчас отражается на теле и самочувствии?
 
-• Постоянно чувствую напряжение/усталость
-• Есть проблемы со сном или восстановлением
-• Заедаю/ Появляется лишний вес
-• Часто игнорирую сигналы тела
-• Раздражительность/ полное безразличие 
-• Нежелание секса/отсутствие возбуждения
-• Свой вариант
+• Выбери из вариантов ответов
+• Или напиши свой вариант
         """, reply_markup=get_first_health_question_panel())
         await state.set_state(QuestionState.waiting_for_first_health_question)
 
@@ -123,12 +109,7 @@ async def run_third_base_question (message : Message, state : FSMContext):
         await message.answer("""
         Что чаще всего повторяется в ваших отношениях?
 
-• Я выбираю похожих партнёров
-• Мне сложно говорить о своих желаниях/чувствах/ просить о помощи
-• Боюсь потерять человека и подстраиваюсь
-• Мне сложно доверять и расслабляться
-• Я часто оказываюсь в роли "спасающей" или «жертвы»
-• Мне сложно построить близкие отношения
+• Выбери из вариантов ответов
 • Ваш вариант решение 
         """, reply_markup=get_first_relationship_question_panel())
         await state.set_state(QuestionState.waiting_for_first_relationship_question)
@@ -138,12 +119,7 @@ async def run_third_base_question (message : Message, state : FSMContext):
         Что сейчас больше всего мешает вам выйти на более высокий финансовый или профессиональный уровень?
 
 
-• Не решаюсь поднять цену / просить больше
-• Много делаю, но доход не растёт
-• Боюсь проявляться и продавать себя
-• Мне сложно выбрать направление
-• Постоянно откладываю важные шаги
-• Не понимаю, что именно меня останавливает
+• Выбери из вариантов ответов
 • Ваш вариант
         """, reply_markup=get_first_finance_question_panel())
         await state.set_state(QuestionState.waiting_for_first_finance_question)
@@ -173,13 +149,8 @@ async def run_first_finance_question(message : Message, state : FSMContext):
     await message.answer("""
         Как вы обычно реагируете, когда нужно сделать шаг, который может увеличить ваш доход?
         
-• Начинаю сомневаться в себе
-• Откладываю
-• Ищу ещё информацию и готовлюсь/ Иду ещё обучаться
-• Боюсь критики или осуждения
-• Беру на себя слишком много и выгораю
-• Начинаю заниматься другими людьми
-• Ваш вариант 
+• Выбери из вариантов ответов
+• Или напиши свой вариант
     """, reply_markup=get_second_finance_question_panel())
     await state.set_state(QuestionState.waiting_for_second_finance_question)
 
@@ -229,7 +200,11 @@ async def get_result(callback : CallbackQuery, state : FSMContext):
     }
 
     result = get_claude_analysis(request_type, answers)
-    await callback.message.answer(result, parse_mode="HTML", reply_markup=get_final_panel())
+    await callback.message.answer(result, parse_mode="HTML")
+    await callback.message.answer_video_note(video_note=final_video)
+    await callback.message.answer('Можешь выбрать то что тебе больше подходит',
+                            reply_markup=get_final_panel())
+
 
 @router.callback_query(F.data == 'get_payment_of_reflection_table')
 async def run_payment_of_reflection_table(callback : CallbackQuery, state : FSMContext):
