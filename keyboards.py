@@ -194,7 +194,9 @@ def get_final_panel():
     )
     builder.row(
         InlineKeyboardButton(text='✍️ Заполнить таблицу само рефлексии 199₽',
-                                callback_data='get_payment_of_reflection_table')
+                                #callback_data='get_payment_of_reflection_table'
+                                url='https://payform.ru/kpcw5Ln/'
+                             )
     )
     builder.row(
         InlineKeyboardButton(text='⭐ Посмотреть отзывы', callback_data='get_reviews')
