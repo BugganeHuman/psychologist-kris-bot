@@ -18,6 +18,7 @@ from keyboards import (get_request_type_panel, get_result_panel,
     get_first_finance_question_panel, get_second_finance_question_panel,
     get_final_panel)
 from claude_api import get_claude_analysis
+from aiogram.utils.media_group import MediaGroupBuilder
 
 router = Router()
 
@@ -47,8 +48,13 @@ async def start(message: Message, state : FSMContext):
 ➡️ <a href='https://t.me/izmeni_gzizn'>Telegram</a>
 ➡️ <a href='https://www.instagram.com/retreat_kris'>Ретриты</a>
 
-Помогаю увидеть причины повторяющихся сценариев в отношениях, деньгах, реализации и внутреннем состоянии...\n
-В работе мне важно не просто поговорить о проблеме...
+Помогаю увидеть причины повторяющихся сценариев в 
+<b>отношениях, деньгах, реализации и внутреннем состоянии </b> и 
+найти то, что мешает прийти к желаемому результату.
+
+В работе мне важно не просто поговорить о проблеме, а помочь тебе <b> увидеть её глубже и запустить здоровое изменение. </b>
+
+🤍 Эта диагностика - первый шаг
     """, disable_web_page_preview=True, parse_mode='HTML'
     )
     await state.clear()
@@ -205,6 +211,28 @@ async def get_result(callback : CallbackQuery, state : FSMContext):
     await callback.message.answer('Можешь выбрать то что тебе больше подходит',
                             reply_markup=get_final_panel())
 
+
+@router.callback_query(F.data == 'get_reviews')
+async def run_show_reviews(callback : CallbackQuery, state : FSMContext):
+    await callback.answer()
+    media_group = MediaGroupBuilder(caption='Отзывы')
+    media_group.add_photo(media=FSInputFile('reviews/photo_1_2026-09-09_15-15-03.jpg'))
+    media_group.add_photo(media=FSInputFile('reviews/photo_2_2026-09-09_15-15-03.jpg'))
+    media_group.add_photo(media=FSInputFile('reviews/photo_3_2026-09-09_15-15-03.jpg'))
+    media_group.add_photo(media=FSInputFile('reviews/photo_4_2026-09-09_15-15-03.jpg'))
+    media_group.add_photo(media=FSInputFile('reviews/photo_5_2026-09-09_15-15-03.jpg'))
+    media_group.add_photo(media=FSInputFile('reviews/photo_6_2026-09-09_15-15-03.jpg'))
+    media_group.add_photo(media=FSInputFile('reviews/photo_7_2026-09-09_15-15-03.jpg'))
+    media_group.add_photo(media=FSInputFile('reviews/photo_8_2026-09-09_15-15-03.jpg'))
+    media_group.add_photo(media=FSInputFile('reviews/photo_9_2026-09-09_15-15-03.jpg'))
+    media_group.add_photo(media=FSInputFile('reviews/photo_10_2026-09-09_15-15-03.jpg'))
+
+    await callback.message.answer_media_group(
+        media=media_group.build()
+    )
+
+    await callback.message.answer('Можешь выбрать что тебе больше подходит',
+                                reply_markup=get_final_panel())
 
 @router.callback_query(F.data == 'get_payment_of_reflection_table')
 async def run_payment_of_reflection_table(callback : CallbackQuery, state : FSMContext):

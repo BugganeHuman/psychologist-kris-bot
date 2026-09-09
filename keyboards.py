@@ -7,16 +7,16 @@ def get_request_type_panel():
     builder = InlineKeyboardBuilder()
 
     builder.row(
-        InlineKeyboardButton(text="❤️ Здоровье", callback_data="request_type_health")
+        InlineKeyboardButton(text="Здоровье", callback_data="request_type_health")
     )
     builder.row(
         InlineKeyboardButton(
-            text="🫶 Отношения", callback_data="request_type_relationship"
+            text="Отношения", callback_data="request_type_relationship"
         )
     )
     builder.row(
         InlineKeyboardButton(
-            text="💰 Бизнесс / Финансы", callback_data="request_type_finance"
+            text="Бизнесс / Финансы", callback_data="request_type_finance"
         )
     )
     return builder.as_markup()
@@ -195,6 +195,9 @@ def get_final_panel():
     builder.row(
         InlineKeyboardButton(text='✍️ Заполнить таблицу само рефлексии 199₽',
                                 callback_data='get_payment_of_reflection_table')
+    )
+    builder.row(
+        InlineKeyboardButton(text='⭐ Посмотреть отзывы', callback_data='get_reviews')
     )
 
     return builder.as_markup()
