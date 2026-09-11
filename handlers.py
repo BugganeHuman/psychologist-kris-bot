@@ -19,6 +19,10 @@ from keyboards import (get_request_type_panel, get_result_panel,
     get_final_panel)
 from claude_api import get_claude_analysis
 from aiogram.utils.media_group import MediaGroupBuilder
+from sheet_start import sheet
+from datetime import datetime
+from zoneinfo import ZoneInfo
+from sheet_final import sheet_final
 
 router = Router()
 
@@ -58,6 +62,17 @@ async def start(message: Message, state : FSMContext):
     """, disable_web_page_preview=True, parse_mode='HTML'
     )
     await state.clear()
+    user_id = str(message.from_user.id)
+    existing_ids = sheet.col_values(1)
+    if user_id not in existing_ids:
+        username=f"@{message.from_user.username}" if message.from_user.username else "None"
+        fullname = message.from_user.full_name
+        now = datetime.now(ZoneInfo("Asia/Tbilisi"))
+        created_at = now.strftime("%d.%m.%Y %H:%M:%S")
+        try:
+            sheet.append_row([user_id, username, fullname, created_at])
+        except Exception as e:
+            print(e)
     await asyncio.sleep(3)
     await message.answer('Выбери тему своего запроса, нажав на кнопку ниже ⬇️',
                                 reply_markup=get_request_type_panel())
@@ -204,6 +219,17 @@ async def get_result(callback : CallbackQuery, state : FSMContext):
         'first_finance_answer': data.get('first_finance_answer', ''),
         'second_finance_answer': data.get('second_finance_answer'),
     }
+
+    user_id = str(callback.from_user.id)
+    username=f"@{callback.from_user.username}" if callback.from_user.username else "None"
+    fullname = callback.from_user.full_name
+    now = datetime.now(ZoneInfo("Asia/Tbilisi"))
+    created_at = now.strftime("%d.%m.%Y %H:%M:%S")
+    try:
+            sheet_final.append_row([user_id, username, fullname, created_at, request_type,*answers.values()])
+    except Exception as e:
+            print(e)
+
 
     result = get_claude_analysis(request_type, answers)
     await callback.message.answer(result, parse_mode="HTML")
